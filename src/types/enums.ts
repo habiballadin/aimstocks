@@ -1,0 +1,314 @@
+// Trading and market related enums
+export enum OrderType {
+  MARKET = 'MARKET',
+  LIMIT = 'LIMIT',
+  STOP_LOSS = 'STOP_LOSS',
+  STOP_LOSS_MARKET = 'STOP_LOSS_MARKET'
+}
+
+export enum OrderSide {
+  BUY = 'BUY',
+  SELL = 'SELL'
+}
+
+export enum ProductType {
+  INTRADAY = 'INTRADAY',
+  DELIVERY = 'DELIVERY',
+  COVER_ORDER = 'COVER_ORDER',
+  BRACKET_ORDER = 'BRACKET_ORDER'
+}
+
+export enum MarketStatus {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  PRE_OPEN = 'PRE_OPEN',
+  POST_CLOSE = 'POST_CLOSE'
+}
+
+export enum TrendDirection {
+  BULLISH = 'BULLISH',
+  BEARISH = 'BEARISH',
+  SIDEWAYS = 'SIDEWAYS'
+}
+
+export enum RiskLevel {
+  LOW = 'LOW',
+  MODERATE = 'MODERATE',
+  HIGH = 'HIGH',
+  VERY_HIGH = 'VERY_HIGH'
+}
+
+export enum InvestorType {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  EXPERT = 'EXPERT'
+}
+
+export enum AlertType {
+  PRICE_ABOVE = 'PRICE_ABOVE',
+  PRICE_BELOW = 'PRICE_BELOW',
+  VOLUME_SPIKE = 'VOLUME_SPIKE',
+  NEWS_ALERT = 'NEWS_ALERT',
+  AI_SIGNAL = 'AI_SIGNAL'
+}
+
+export enum ChartTimeframe {
+  ONE_MIN = '1m',
+  FIVE_MIN = '5m',
+  FIFTEEN_MIN = '15m',
+  ONE_HOUR = '1h',
+  ONE_DAY = '1d',
+  ONE_WEEK = '1w',
+  ONE_MONTH = '1M'
+}
+
+export enum SupportedLanguage {
+  ENGLISH = 'en',
+  HINDI = 'hi',
+  TAMIL = 'ta',
+  TELUGU = 'te',
+  KANNADA = 'kn',
+  MALAYALAM = 'ml',
+  BENGALI = 'bn',
+  GUJARATI = 'gu',
+  MARATHI = 'mr',
+  PUNJABI = 'pa',
+  ASSAMESE = 'as'
+}
+
+// Broker and connection related enums
+export enum BrokerType {
+  FYERS = 'FYERS',
+  ICICI_DIRECT = 'ICICI_DIRECT',
+  UPSTOX = 'UPSTOX',
+  ZERODHA = 'ZERODHA',
+  ANGEL_ONE = 'ANGEL_ONE',
+  FIVEPAISA = 'FIVEPAISA',
+  KOTAK = 'KOTAK',
+  HDFC = 'HDFC',
+  SHAREKHAN = 'SHAREKHAN',
+  MOTILAL_OSWAL = 'MOTILAL_OSWAL'
+}
+
+export enum ConnectionStatus {
+  CONNECTED = 'CONNECTED',
+  DISCONNECTED = 'DISCONNECTED',
+  CONNECTING = 'CONNECTING',
+  ERROR = 'ERROR',
+  RECONNECTING = 'RECONNECTING'
+}
+
+export enum DataFlowStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  STREAMING = 'STREAMING',
+  NO_DATA = 'NO_DATA',
+  LIMITED = 'LIMITED'
+}
+
+export enum ConnectionHealth {
+  HEALTHY = 'HEALTHY',
+  WARNING = 'WARNING',
+  CRITICAL = 'CRITICAL',
+  UNKNOWN = 'UNKNOWN'
+}
+
+export enum BrokerService {
+  MARKET_DATA = 'MARKET_DATA',
+  ORDER_MANAGEMENT = 'ORDER_MANAGEMENT',
+  PORTFOLIO_SYNC = 'PORTFOLIO_SYNC',
+  REAL_TIME_QUOTES = 'REAL_TIME_QUOTES',
+  HISTORICAL_DATA = 'HISTORICAL_DATA',
+  NEWS_FEED = 'NEWS_FEED',
+  ALERTS = 'ALERTS'
+}
+
+export enum SubscriptionPlan {
+  BASIC = 'BASIC',
+  PRO = 'PRO',
+  ENTERPRISE = 'ENTERPRISE'
+}
+
+// New enums for advanced features
+export enum OptimizationType {
+  REBALANCE = 'REBALANCE',
+  ADD_POSITION = 'ADD_POSITION',
+  REDUCE_POSITION = 'REDUCE_POSITION',
+  SECTOR_ROTATE = 'SECTOR_ROTATE',
+  TAX_HARVEST = 'TAX_HARVEST'
+}
+
+export enum TechnicalPattern {
+  ASCENDING_TRIANGLE = 'ASCENDING_TRIANGLE',
+  DESCENDING_TRIANGLE = 'DESCENDING_TRIANGLE',
+  HEAD_AND_SHOULDERS = 'HEAD_AND_SHOULDERS',
+  INVERSE_HEAD_AND_SHOULDERS = 'INVERSE_HEAD_AND_SHOULDERS',
+  DOUBLE_TOP = 'DOUBLE_TOP',
+  DOUBLE_BOTTOM = 'DOUBLE_BOTTOM',
+  BULL_FLAG = 'BULL_FLAG',
+  BEAR_FLAG = 'BEAR_FLAG',
+  CUP_AND_HANDLE = 'CUP_AND_HANDLE',
+  WEDGE = 'WEDGE'
+}
+
+export enum AutomationAction {
+  NOTIFICATION = 'NOTIFICATION',
+  EMAIL = 'EMAIL',
+  SMS = 'SMS',
+  AUTO_TRADE = 'AUTO_TRADE',
+  WEBHOOK = 'WEBHOOK'
+}
+
+export enum SentimentSource {
+  NEWS = 'NEWS',
+  SOCIAL = 'SOCIAL',
+  ANALYST = 'ANALYST',
+  EARNINGS = 'EARNINGS'
+}
+
+// Order and execution related enums
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  SUBMITTED = 'SUBMITTED',
+  ACKNOWLEDGED = 'ACKNOWLEDGED',
+  PARTIALLY_FILLED = 'PARTIALLY_FILLED',
+  FILLED = 'FILLED',
+  CANCELLED = 'CANCELLED',
+  REJECTED = 'REJECTED',
+  EXPIRED = 'EXPIRED',
+  FAILED = 'FAILED'
+}
+
+export enum ExecutionStatus {
+  PENDING_EXECUTION = 'PENDING_EXECUTION',
+  EXECUTING = 'EXECUTING',
+  EXECUTED = 'EXECUTED',
+  PARTIAL_EXECUTION = 'PARTIAL_EXECUTION',
+  EXECUTION_FAILED = 'EXECUTION_FAILED',
+  CANCELLED = 'CANCELLED'
+}
+
+export enum OrderPriority {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT'
+}
+
+export enum AlgorithmStatus {
+  INITIALIZING = 'INITIALIZING',
+  RUNNING = 'RUNNING',
+  PAUSED = 'PAUSED',
+  STOPPED = 'STOPPED',
+  ERROR = 'ERROR',
+  RESTARTING = 'RESTARTING'
+}
+
+export enum ExecutionVenue {
+  NSE = 'NSE',
+  BSE = 'BSE',
+  MCX = 'MCX',
+  NCDEX = 'NCDEX'
+}
+
+export enum OrderTimeInForce {
+  DAY = 'DAY',
+  IOC = 'IOC',
+  FOK = 'FOK',
+  GTC = 'GTC',
+  GTD = 'GTD'
+}
+
+export enum BulkOrderStatus {
+  VALIDATING = 'VALIDATING',
+  VALIDATED = 'VALIDATED',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  PARTIALLY_PROCESSED = 'PARTIALLY_PROCESSED'
+}
+
+// Virtual Trading and Fund Management
+export enum FundType {
+  VIRTUAL = 'VIRTUAL',
+  REAL = 'REAL',
+  MIXED = 'MIXED'
+}
+
+export enum TradingMode {
+  VIRTUAL = 'VIRTUAL',
+  LIVE = 'LIVE',
+  PAPER = 'PAPER'
+}
+
+// Backtesting
+export enum BacktestStatus {
+  CONFIGURING = 'CONFIGURING',
+  RUNNING = 'RUNNING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED'
+}
+
+export enum BacktestType {
+  SINGLE_STRATEGY = 'SINGLE_STRATEGY',
+  MULTI_STRATEGY = 'MULTI_STRATEGY',
+  MONTE_CARLO = 'MONTE_CARLO',
+  WALK_FORWARD = 'WALK_FORWARD'
+}
+
+// Chart and Historical Data
+export enum ChartType {
+  CANDLESTICK = 'CANDLESTICK',
+  LINE = 'LINE',
+  AREA = 'AREA',
+  VOLUME = 'VOLUME',
+  HEIKIN_ASHI = 'HEIKIN_ASHI'
+}
+
+export enum TechnicalIndicator {
+  SMA = 'SMA',
+  EMA = 'EMA',
+  RSI = 'RSI',
+  MACD = 'MACD',
+  BOLLINGER_BANDS = 'BOLLINGER_BANDS',
+  STOCHASTIC = 'STOCHASTIC',
+  ATR = 'ATR',
+  VOLUME_PROFILE = 'VOLUME_PROFILE'
+}
+
+export enum PatternType {
+  HEAD_AND_SHOULDERS = 'HEAD_AND_SHOULDERS',
+  INVERSE_HEAD_AND_SHOULDERS = 'INVERSE_HEAD_AND_SHOULDERS',
+  DOUBLE_TOP = 'DOUBLE_TOP',
+  DOUBLE_BOTTOM = 'DOUBLE_BOTTOM',
+  TRIANGLE = 'TRIANGLE',
+  FLAG = 'FLAG',
+  PENNANT = 'PENNANT',
+  WEDGE = 'WEDGE'
+}
+
+// Algorithm Development
+export enum AlgorithmType {
+  MOMENTUM = 'MOMENTUM',
+  MEAN_REVERSION = 'MEAN_REVERSION',
+  ARBITRAGE = 'ARBITRAGE',
+  ML_BASED = 'ML_BASED',
+  SENTIMENT_BASED = 'SENTIMENT_BASED',
+  CUSTOM = 'CUSTOM'
+}
+
+export enum AlgorithmComplexity {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED',
+  EXPERT = 'EXPERT'
+}
+
+export enum MLModelType {
+  LINEAR_REGRESSION = 'LINEAR_REGRESSION',
+  RANDOM_FOREST = 'RANDOM_FOREST',
+  LSTM = 'LSTM',
+  TRANSFORMER = 'TRANSFORMER',
+  ENSEMBLE = 'ENSEMBLE'
+}
