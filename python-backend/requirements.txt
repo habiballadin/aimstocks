@@ -1,45 +1,12 @@
-# Python Backend Requirements for Algorithmic Trading
-
-# Web Framework
 fastapi==0.104.1
-uvicorn[standard]==0.24.0
-
-# Data Processing
-pandas==2.1.3
-numpy>=1.26.0
-
-# Financial Data
-yfinance==0.2.22
-alpha-vantage==2.3.1
-
-# Technical Analysis
-# ta-lib==0.4.28  # Commented out due to Python 3.12 compatibility issues
-ta==0.10.2
-
-# Machine Learning
-scikit-learn==1.3.2
-joblib==1.3.2
-
-# Database (optional)
-sqlalchemy==2.0.23
-alembic==1.12.1
-
-# System Monitoring
-psutil==5.9.6
-
-# Utilities
-python-multipart==0.0.6
+uvicorn==0.24.0
+aiohttp==3.9.1
+yfinance==0.2.28
+pandas==2.1.4
+numpy==1.26.2
+mysql-connector-python==8.2.0
 python-dotenv==1.0.0
+pydantic==2.5.0
+websockets==12.0
 requests==2.31.0
-
-# Development
-pytest==7.4.3
-black==23.11.0
-flake8==6.1.0
-
-# Optional: Advanced ML libraries
-# tensorflow==2.14.0
-# torch==2.1.1
-# xgboost==2.0.1
-# Fyers API
-fyers-apiv3==3.1.7
+fyers-apiv3==3.0.6

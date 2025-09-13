@@ -59,6 +59,7 @@ import { UserProfile } from '../profile/UserProfile';
 import MarketStatus from '../header/MarketStatus';
 import { MarketHeader } from '../common/MarketHeader';
 import { OptionsTrading } from '../trading/OptionsTrading';
+import { DataIngestionMonitor } from '../data/DataIngestionMonitor';
 
 const menuItems = [
   { id: 0, label: 'Dashboard', icon: LayoutDashboard },
@@ -84,7 +85,8 @@ const menuItems = [
   { id: 20, label: 'Learn', icon: GraduationCap },
   { id: 21, label: 'Community', icon: Users },
   { id: 22, label: 'Options', icon: Target },
-  { id: 23, label: 'Connect', icon: Wifi }
+  { id: 23, label: 'Connect', icon: Wifi },
+  { id: 24, label: 'Data Monitor', icon: Database }
 ];
 
 export const Dashboard: React.FC = () => {
@@ -262,6 +264,8 @@ export const Dashboard: React.FC = () => {
         return <OptionsTrading />;
       case 23:
         return <FyersConnectionPage />;
+      case 24:
+        return <DataIngestionMonitor />;
       default:
         return null;
     }

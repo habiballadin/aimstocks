@@ -413,9 +413,6 @@ async def get_market_status():
                     {"exchange": 10, "segment": 10, "market_type": "NORMAL", "status": status},
                     {"exchange": 12, "segment": 10, "market_type": "NORMAL", "status": status}
                 ]
-            }", "status": "OPEN"},
-                    {"exchange": 12, "segment": 10, "market_type": "NORMAL", "status": "OPEN"}
-                ]
             }
     except Exception as e:
         logger.error(f"Market status error: {str(e)}")
