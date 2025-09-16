@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  fyers-ingestion:
+    build: .
+    container_name: fyers-ingestion
+    environment:
+      - FYERS_ACCESS_TOKEN=${FYERS_ACCESS_TOKEN}
+      - TIMESCALE_HOST=timescaledb
+      - TIMESCALE_PORT=5432
+      - TIMESCALE_DB=stockmarket
+      - TIMESCALE_USER=postgres
+      - TIMESCALE_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=aimstocks2024
+      - KAFKA_BROKER=kafka:9092
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_DB=analytics
+    depends_on:
+      - timescaledb
+      - redis
+      - kafka
+      - clickhouse
+    networks:
+      - stock-network
+    restart: unless-stopped
+    command: python ingestion_scheduler.py
+
+  clickhouse-ingestion:
+    build: .
+    container_name: clickhouse-ingestion
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_DB=analytics
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - clickhouse
+      - kafka
+    networks:
+      - stock-network
+    restart: unless-stopped
+    command: python clickhouse_ingestion.py
+
+networks:
+  stock-network:
+    external: true

@@ -13,21 +13,56 @@ export const BrokerConnectionCard: React.FC<BrokerConnectionCardProps> = ({ onCo
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkConnectionStatus();
+    // Check for auth code in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const authCode = urlParams.get('auth_code');
+    
+    if (authCode) {
+      handleAuthCallback(authCode);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      checkConnectionStatus();
+    }
     
     // Check connection status every 30 seconds
     const interval = setInterval(checkConnectionStatus, 30000);
     return () => clearInterval(interval);
   }, []);
 
+  const handleAuthCallback = async (authCode: string) => {
+    setIsConnecting(true);
+    try {
+      const result = await fyersService.authenticate(authCode);
+      if (result.success) {
+        setIsConnected(true);
+        setError(null);
+      } else {
+        setError(result.error || 'Authentication failed');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   const checkConnectionStatus = async () => {
     try {
-      await fyersService.getProfile();
-      setIsConnected(true);
-      setError(null);
+      const response = await fetch('/api/fyers/profile');
+      const data = await response.json();
+      
+      if (data.success && data.data?.data?.fy_id) {
+        setIsConnected(true);
+        setError(null);
+      } else {
+        setIsConnected(false);
+        setError(data.error || 'Not authenticated');
+      }
     } catch (err) {
       setIsConnected(false);
-      setError(err instanceof Error ? err.message : 'Connection failed');
+      setError('Backend not available');
+      console.error('Connection check failed:', err);
     }
   };
 
@@ -37,11 +72,15 @@ export const BrokerConnectionCard: React.FC<BrokerConnectionCardProps> = ({ onCo
     
     try {
       const authUrl = await fyersService.getAuthUrl();
-      if (authUrl.includes('client_id=None')) {
+      if (authUrl && authUrl.includes('client_id=None')) {
         setError('Backend configuration error. Please check environment variables.');
         return;
       }
-      window.open(authUrl, '_blank');
+      if (!authUrl) {
+        setError('Failed to get authentication URL');
+        return;
+      }
+      window.location.href = authUrl;
       onConnect?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Backend server not available');

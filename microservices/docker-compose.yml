@@ -1,0 +1,285 @@
+services:
+  # Database
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb-db
+    environment:
+      - POSTGRES_DB=stockmarket
+      - POSTGRES_USER=apiuser
+      - POSTGRES_PASSWORD=apipass
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ../database/init:/docker-entrypoint-initdb.d
+    networks:
+      - aimstocks-network
+    command: postgres -c shared_preload_libraries=timescaledb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apiuser -d stockmarket"]
+      timeout: 20s
+      retries: 10
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: aimstocks-api-gateway
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      - USER_SERVICE_URL=http://user-service:8001
+      - BROKER_SERVICE_URL=http://broker-service:8002
+      - PORTFOLIO_SERVICE_URL=http://portfolio-service:8003
+      - ORDER_SERVICE_URL=http://order-service:8004
+      - MARKET_DATA_SERVICE_URL=http://market-data-service:8005
+      - ALGORITHM_SERVICE_URL=http://algorithm-service:8006
+      - ALERT_SERVICE_URL=http://alert-service:8007
+      - NEWS_SERVICE_URL=http://news-service:8008
+      - WEBSOCKET_SERVICE_URL=http://websocket-service:8009
+      - DATA_INGESTION_SERVICE_URL=http://data-ingestion-service:8000
+    depends_on:
+      - user-service
+      - broker-service
+      - portfolio-service
+      - order-service
+      - market-data-service
+      - algorithm-service
+      - alert-service
+      - news-service
+      - websocket-service
+      - data-ingestion-service
+    networks:
+      - aimstocks-network
+
+  # User Service
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: aimstocks-user-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - JWT_SECRET=your-jwt-secret-key
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Broker Service
+  broker-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.broker
+    container_name: aimstocks-broker-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - FYERS_CLIENT_ID=${FYERS_CLIENT_ID}
+      - FYERS_SECRET_KEY=${FYERS_SECRET_KEY}
+      - FYERS_REDIRECT_URI=http://127.0.0.1:5000/fyers/callback
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Portfolio Service
+  portfolio-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.portfolio
+    container_name: aimstocks-portfolio-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Order Service
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    container_name: aimstocks-order-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - BROKER_SERVICE_URL=http://broker-service:8002
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Market Data Service
+  market-data-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.market-data
+    container_name: aimstocks-market-data-service
+    ports:
+      - "8005:8005"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - BROKER_SERVICE_URL=http://broker-service:8002
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Algorithm Service
+  algorithm-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.algorithm
+    container_name: aimstocks-algorithm-service
+    ports:
+      - "8006:8006"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - MARKET_DATA_SERVICE_URL=http://market-data-service:8005
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Alert Service
+  alert-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.alert
+    container_name: aimstocks-alert-service
+    ports:
+      - "8007:8007"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - MARKET_DATA_SERVICE_URL=http://market-data-service:8005
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # News Service
+  news-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.news
+    container_name: aimstocks-news-service
+    ports:
+      - "8008:8008"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # WebSocket Service
+  websocket-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+    container_name: aimstocks-websocket-service
+    ports:
+      - "8009:8009"
+    environment:
+      - MARKET_DATA_SERVICE_URL=http://market-data-service:8005
+      - ORDER_SERVICE_URL=http://order-service:8004
+      - ALERT_SERVICE_URL=http://alert-service:8007
+    networks:
+      - aimstocks-network
+
+  # Data Ingestion Service
+  data-ingestion-service:
+    build:
+      context: .
+      dockerfile: data-ingestion-service/Dockerfile.data-ingestion
+    container_name: aimstocks-data-ingestion-service
+    ports:
+      - "8010:8000"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # NiFi Data Ingestion Service
+  nifi-service:
+    build:
+      context: .
+      dockerfile: nifi-service/Dockerfile.nifi
+    container_name: aimstocks-nifi-service
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+
+
+networks:
+  aimstocks-network:
+    driver: bridge
+
+volumes:
+  timescaledb_data:

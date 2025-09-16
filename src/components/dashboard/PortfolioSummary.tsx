@@ -19,8 +19,8 @@ export const PortfolioSummary: React.FC = () => {
     const fetchData = async () => {
       try {
         const [fundsRes, holdingsRes] = await Promise.all([
-          fetch('http://127.0.0.1:5000/api/fyers/funds'),
-          fetch('http://127.0.0.1:5000/api/fyers/holdings')
+          fetch('/api/fyers/funds'),
+          fetch('/api/fyers/holdings')
         ]);
         
         const fundsData = await fundsRes.json();

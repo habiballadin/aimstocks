@@ -1,0 +1,85 @@
+services:
+  # User Service
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: aimstocks-user-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - JWT_SECRET=your-jwt-secret-key
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Broker Service
+  broker-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.broker
+    container_name: aimstocks-broker-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - FYERS_CLIENT_ID=${FYERS_CLIENT_ID}
+      - FYERS_SECRET_KEY=${FYERS_SECRET_KEY}
+      - FYERS_REDIRECT_URI=http://127.0.0.1:5000/fyers/callback
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Portfolio Service
+  portfolio-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.portfolio
+    container_name: aimstocks-portfolio-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network
+
+  # Order Service
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    container_name: aimstocks-order-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+      - DB_USER=apiuser
+      - DB_PASSWORD=apipass
+      - DB_NAME=stockmarket
+      - BROKER_SERVICE_URL=http://broker-service:8002
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - aimstocks-network

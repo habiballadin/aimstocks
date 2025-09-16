@@ -1,0 +1,6 @@
+networks:
+  aimstocks-network:
+    driver: bridge
+
+volumes:
+  timescaledb_data:

@@ -9,7 +9,8 @@ const MarketStatus: React.FC = () => {
   useEffect(() => {
     const fetchMarketStatus = async () => {
       try {
-        const data = await fyersService.getMarketStatus();
+        const response = await fyersService.getMarketStatus();
+        const data = Array.isArray(response) ? response : (response as { data?: FyersMarketStatus[] })?.data || [];
         setMarketStatus(data);
       } catch (error) {
         console.error('Failed to fetch market status:', error);
@@ -42,11 +43,13 @@ const MarketStatus: React.FC = () => {
 
   // Get unique main markets status (one per exchange)
   const uniqueExchanges = new Map();
-  marketStatus.forEach(m => {
-    if (m.market_type === 'NORMAL' && !uniqueExchanges.has(m.exchange)) {
-      uniqueExchanges.set(m.exchange, m);
-    }
-  });
+  if (Array.isArray(marketStatus)) {
+    marketStatus.forEach(m => {
+      if (m.market_type === 'NORMAL' && !uniqueExchanges.has(m.exchange)) {
+        uniqueExchanges.set(m.exchange, m);
+      }
+    });
+  }
   const mainMarkets = Array.from(uniqueExchanges.values());
 
   if (loading) {

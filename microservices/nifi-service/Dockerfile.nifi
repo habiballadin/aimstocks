@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install PostgreSQL client for pg_isready
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+COPY nifi-service/scripts/requirements.txt ./requirements.txt
+
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+COPY nifi-service/scripts/ ./scripts/
+COPY nifi-service/templates/ ./templates/
+
+CMD ["bash", "scripts/start-nifi.sh"]

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -10,9 +10,12 @@ import {
   Stack,
   Progress
 } from '@chakra-ui/react';
-import { Database, Wifi, RefreshCw, CheckCircle, XCircle, Clock, TrendingUp } from 'lucide-react';
+import { useToast } from '@chakra-ui/toast';
+import { Database, Wifi, RefreshCw, CheckCircle, XCircle, Clock, TrendingUp, Play, Square } from 'lucide-react';
+import { fyersService } from '../../services/fyersService';
 
 export const DataIngestionMonitor: React.FC = () => {
+  const toast = useToast();
   const [stats, setStats] = useState({
     totalSymbols: 5,
     successfulUpdates: 5,
@@ -22,7 +25,7 @@ export const DataIngestionMonitor: React.FC = () => {
     isRunning: true
   });
 
-  const [dataSources] = useState([
+  const [dataSources, setDataSources] = useState([
     { name: 'yFinance', status: 'connected', lastUpdate: '2 min ago', symbolsCount: 5, latency: 1200 },
     { name: 'Fyers API', status: 'disconnected', lastUpdate: '10 min ago', symbolsCount: 0, latency: 0 },
     { name: 'Fallback Data', status: 'connected', lastUpdate: '1 min ago', symbolsCount: 5, latency: 50 }
@@ -37,27 +40,138 @@ export const DataIngestionMonitor: React.FC = () => {
   ]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRealtimeRunning, setIsRealtimeRunning] = useState(false);
+
+  // Load initial data
+  useEffect(() => {
+    loadIngestionData();
+  }, []);
+
+  const loadIngestionData = async () => {
+    try {
+      // Load ingestion status
+      const statusData = await fyersService.getIngestionStatus();
+      setStats(statusData);
+
+      // Load data sources status
+      const sourcesData = await fyersService.getDataSourcesStatus();
+      setDataSources(sourcesData);
+
+      // Load latest market data
+      const marketDataResponse = await fyersService.getLatestMarketData();
+      if (marketDataResponse && marketDataResponse.length > 0) {
+        const formattedData = marketDataResponse.slice(0, 5).map(item => ({
+          symbol: item.symbol.replace('NSE:', '').replace('-EQ', ''),
+          ltp: item.latest_price,
+          change: item.price_change || 0,
+          changePercent: item.price_change_pct || 0,
+          volume: item.volume || 0,
+          lastUpdated: 'Just now',
+          source: 'Fyers API'
+        }));
+        setMarketData(formattedData);
+      }
+    } catch (error) {
+      console.error('Failed to load ingestion data:', error);
+      toast({
+        title: 'Failed to load data',
+        description: 'Could not fetch real-time ingestion data',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
-
-    setTimeout(() => {
-      setStats(prev => ({
-        ...prev,
-        lastUpdateTime: new Date().toISOString(),
-        successfulUpdates: prev.successfulUpdates + 1
-      }));
-
-      setMarketData(prev => prev.map(item => ({
-        ...item,
-        ltp: item.ltp + (Math.random() - 0.5) * 10,
-        change: item.change + (Math.random() - 0.5) * 2,
-        changePercent: item.changePercent + (Math.random() - 0.5) * 0.5,
-        lastUpdated: 'Just now'
-      })));
-
+    try {
+      await loadIngestionData();
+      toast({
+        title: 'Data refreshed',
+        description: 'Latest market data has been loaded',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch {
+      toast({
+        title: 'Refresh failed',
+        description: 'Could not refresh market data',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
       setIsRefreshing(false);
-    }, 2000);
+    }
+  };
+
+  const handleHistoricalIngestion = async () => {
+    try {
+      const result = await fyersService.triggerHistoricalIngestion('1D', 30);
+      toast({
+        title: 'Historical ingestion started',
+        description: `Processing ${result.records_processed || 0} records`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      // Refresh data after a short delay
+      setTimeout(() => loadIngestionData(), 2000);
+    } catch {
+      toast({
+        title: 'Historical ingestion failed',
+        description: 'Could not start historical data ingestion',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleStartRealtime = async () => {
+    try {
+      await fyersService.startRealtimeIngestion();
+      setIsRealtimeRunning(true);
+      toast({
+        title: 'Real-time ingestion started',
+        description: 'Real-time data ingestion is now running',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch {
+      toast({
+        title: 'Failed to start real-time ingestion',
+        description: 'Could not start real-time data ingestion',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleStopRealtime = async () => {
+    try {
+      await fyersService.stopRealtimeIngestion();
+      setIsRealtimeRunning(false);
+      toast({
+        title: 'Real-time ingestion stopped',
+        description: 'Real-time data ingestion has been stopped',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch {
+      toast({
+        title: 'Failed to stop real-time ingestion',
+        description: 'Could not stop real-time data ingestion',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -87,14 +201,44 @@ export const DataIngestionMonitor: React.FC = () => {
             Real-time monitoring of data sources and ingestion process
           </Text>
         </Box>
-        <Button
-          onClick={handleManualRefresh}
-          loading={isRefreshing}
-          colorScheme="blue"
-        >
-          <RefreshCw size={16} />
-          Refresh Now
-        </Button>
+        <Flex gap={3}>
+          <Button
+            onClick={handleHistoricalIngestion}
+            colorScheme="green"
+            size="sm"
+          >
+            <Database size={16} />
+            Historical
+          </Button>
+          {isRealtimeRunning ? (
+            <Button
+              onClick={handleStopRealtime}
+              colorScheme="red"
+              size="sm"
+            >
+              <Square size={16} />
+              Stop Realtime
+            </Button>
+          ) : (
+            <Button
+              onClick={handleStartRealtime}
+              colorScheme="purple"
+              size="sm"
+            >
+              <Play size={16} />
+              Start Realtime
+            </Button>
+          )}
+          <Button
+            onClick={handleManualRefresh}
+            loading={isRefreshing}
+            colorScheme="blue"
+            size="sm"
+          >
+            <RefreshCw size={16} />
+            Refresh
+          </Button>
+        </Flex>
       </Flex>
 
       <SimpleGrid columns={{ base: 2, md: 4 }} gap={4} mb={6}>

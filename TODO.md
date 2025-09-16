@@ -1,0 +1,1 @@
+- [x] Add command to start database-service docker-compose in start-services.sh before main services

@@ -1,0 +1,22 @@
+services:
+  # Database
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb-db
+    environment:
+      - POSTGRES_DB=stockmarket
+      - POSTGRES_USER=apiuser
+      - POSTGRES_PASSWORD=apipass
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ../database/init:/docker-entrypoint-initdb.d
+    networks:
+      - aimstocks-network
+    command: postgres -c shared_preload_libraries=timescaledb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apiuser -d stockmarket"]
+      timeout: 20s
+      retries: 10

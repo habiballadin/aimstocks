@@ -263,7 +263,7 @@ export const Dashboard: React.FC = () => {
       case 22:
         return <OptionsTrading />;
       case 23:
-        return <FyersConnectionPage />;
+        return <FyersConnectionPage onAuthSuccess={() => setActiveTab(0)} />;
       case 24:
         return <DataIngestionMonitor />;
       default:

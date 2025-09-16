@@ -1,0 +1,55 @@
+.fyers-connect-container {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.broker-status {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.broker-status h3 {
+  color: #e74c3c;
+  margin-bottom: 8px;
+}
+
+.status-text {
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.connection-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.token-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.connect-button {
+  padding: 12px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.connect-button:hover {
+  background: #2980b9;
+}
+
+.connect-button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}

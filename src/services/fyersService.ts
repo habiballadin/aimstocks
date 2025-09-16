@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:5000/api';
+const API_BASE_URL = '/api';
 
 export interface FyersProfile {
   fy_id: string;
@@ -208,7 +208,7 @@ class FyersService {
   private baseUrl = API_BASE_URL;
 
   async getAuthUrl(): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/fyers/auth-url`);
+    const response = await fetch(`${this.baseUrl}/v1/auth/fyers-auth-url`);
     const data = await response.json();
 
     if (!data.success) {
@@ -219,15 +219,25 @@ class FyersService {
   }
 
   async authenticate(authCode: string): Promise<{ success: boolean; access_token?: string; error?: string }> {
-    const response = await fetch(`${this.baseUrl}/fyers/authenticate`, {
+    const response = await fetch(`${this.baseUrl}/v1/auth/exchange-code`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ auth_code: authCode }),
+      body: JSON.stringify({ auth_code: authCode, user_id: 1 }),
     });
 
-    return await response.json();
+    const result = await response.json();
+    
+    if (result.success && result.access_token) {
+      // Store token in database
+      await this.storeTokenInDatabase(result.access_token);
+      
+      // Sync user data after successful authentication
+      await this.syncAllUserData();
+    }
+    
+    return result;
   }
 
   async getProfile(): Promise<FyersProfile> {
@@ -366,7 +376,12 @@ class FyersService {
       throw new Error(data.error || 'Failed to get funds');
     }
 
-    return data.data.fund_limit || [];
+    const funds = data.data.fund_limit || [];
+    
+    // Store funds in database
+    await this.storeFundsInDatabase(funds);
+    
+    return funds;
   }
 
   async getMarketStatus(): Promise<FyersMarketStatus[]> {
@@ -382,7 +397,7 @@ class FyersService {
       ];
     }
 
-    return data.marketStatus || [];
+    return data.data?.marketStatus || data.marketStatus || [];
   }
 
   async getMarketDepth(symbol: string, ohlcvFlag: boolean = true): Promise<FyersMarketDepth> {
@@ -413,10 +428,25 @@ class FyersService {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.error || 'Failed to get option chain');
+      // Return empty option chain data instead of throwing error
+      return {
+        callOi: 0,
+        putOi: 0,
+        expiryData: [],
+        indiavixData: {
+          ask: 0, bid: 0, description: '', ex_symbol: '', exchange: '',
+          fyToken: '', ltp: 0, ltpch: 0, ltpchp: 0, option_type: '',
+          strike_price: 0, symbol: ''
+        },
+        optionsChain: []
+      };
     }
 
-    return data.data;
+    return data.data?.data || data.data || {
+      callOi: 0, putOi: 0, expiryData: [], 
+      indiavixData: { ask: 0, bid: 0, description: '', ex_symbol: '', exchange: '', fyToken: '', ltp: 0, ltpch: 0, ltpchp: 0, option_type: '', strike_price: 0, symbol: '' },
+      optionsChain: []
+    };
   }
 
   // WebSocket methods
@@ -487,6 +517,224 @@ class FyersService {
     });
 
     return await response.json();
+  }
+
+  // Data Ingestion methods
+  async getIngestionStatus(): Promise<{
+    totalSymbols: number;
+    successfulUpdates: number;
+    failedUpdates: number;
+    lastUpdateTime: string;
+    updateInterval: number;
+    isRunning: boolean;
+  }> {
+    const response = await fetch(`${this.baseUrl}/ingestion/status`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to get ingestion status');
+    }
+
+    return data;
+  }
+
+  async startRealtimeIngestion(): Promise<{ message: string; status: string }> {
+    const response = await fetch(`${this.baseUrl}/ingestion/realtime/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to start real-time ingestion');
+    }
+
+    return data;
+  }
+
+  async stopRealtimeIngestion(): Promise<{ message: string; status: string }> {
+    const response = await fetch(`${this.baseUrl}/ingestion/realtime/stop`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to stop real-time ingestion');
+    }
+
+    return data;
+  }
+
+  async getDataSourcesStatus(): Promise<Array<{
+    name: string;
+    status: string;
+    lastUpdate: string;
+    symbolsCount: number;
+    latency: number;
+  }>> {
+    const response = await fetch(`${this.baseUrl}/ingestion/data-sources`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to get data sources status');
+    }
+
+    return data;
+  }
+
+  async triggerHistoricalIngestion(resolution: string = '1D', days: number = 100): Promise<{
+    message: string;
+    records_processed: number;
+  }> {
+    const response = await fetch(`${this.baseUrl}/fyers/ingest?resolution=${resolution}&days=${days}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to trigger historical ingestion');
+    }
+
+    return data;
+  }
+
+  async getLatestMarketData(): Promise<Array<{
+    symbol: string;
+    latest_price: number;
+    price_change: number;
+    price_change_pct: number;
+    volume: number;
+    sma_20: number;
+    rsi_14: number;
+  }>> {
+    const response = await fetch(`${this.baseUrl}/fyers/latest`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to get latest market data');
+    }
+
+    return data;
+  }
+
+  private async storeTokenInDatabase(accessToken: string): Promise<void> {
+    try {
+      await fetch(`${this.baseUrl}/user-tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 1,
+          token: accessToken,
+          token_type: 'fyers_access',
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to store token in database:', error);
+    }
+  }
+
+  private async storeFundsInDatabase(funds: FyersFunds[]): Promise<void> {
+    try {
+      for (const fund of funds) {
+        await fetch(`${this.baseUrl}/funds`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1,
+            title: fund.title,
+            equity_amount: fund.equityAmount,
+            commodity_amount: fund.commodityAmount,
+          }),
+        });
+      }
+    } catch (error) {
+      console.error('Failed to store funds in database:', error);
+    }
+  }
+
+  private async syncAllUserData(): Promise<void> {
+    try {
+      // Sync profile data
+      const profile = await this.getProfile();
+      
+      // Store user details if not exists
+      await fetch(`${this.baseUrl}/user-details`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 1,
+          username: profile.name,
+          email: profile.email_id,
+          fy_id: profile.fy_id,
+          name: profile.name,
+          display_name: profile.display_name,
+          mobile_number: profile.mobile_number,
+          pan: profile.PAN,
+        }),
+      });
+      
+      await fetch(`${this.baseUrl}/user-profiles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 1,
+          fy_id: profile.fy_id,
+          display_name: profile.display_name,
+          mobile_number: profile.mobile_number,
+          pan: profile.PAN,
+          totp_enabled: profile.totp || false,
+          ddpi_enabled: profile.ddpi_enabled || false,
+          mtf_enabled: profile.mtf_enabled || false,
+        }),
+      });
+
+      // Sync funds data (getFunds now handles database storage)
+      await this.getFunds();
+
+      // Sync holdings data
+      const holdings = await this.getHoldings();
+      for (const holding of holdings as Array<{
+        symbol?: string;
+        exchange?: string;
+        qty?: number;
+        costPrice?: number;
+        ltp?: number;
+        marketVal?: number;
+        pl?: number;
+        plPercent?: number;
+      }>) {
+        await fetch(`${this.baseUrl}/holdings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portfolio_id: 1,
+            symbol: holding.symbol,
+            exchange: holding.exchange || 'NSE',
+            quantity: holding.qty || 0,
+            avg_cost: holding.costPrice || 0,
+            current_price: holding.ltp || 0,
+            market_value: holding.marketVal || 0,
+            pnl: holding.pl || 0,
+            pnl_percent: holding.plPercent || 0,
+          }),
+        });
+      }
+
+    } catch (error) {
+      console.error('Failed to sync user data:', error);
+    }
   }
 }
 

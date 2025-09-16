@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Fyers Connection</title>
+</head>
+<body>
+    <h1>Test Fyers API Connection</h1>
+    
+    <div>
+        <h3>Test User Service</h3>
+        <button onclick="testUserService()">Test User Service Health</button>
+        <div id="userResult"></div>
+    </div>
+
+    <div>
+        <h3>Test Fyers Connection</h3>
+        <input type="text" id="accessToken" placeholder="Enter Fyers Access Token" style="width: 300px;">
+        <button onclick="testFyersConnection()">Test Connection</button>
+        <div id="fyersResult"></div>
+    </div>
+
+    <script>
+        async function testUserService() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                document.getElementById('userResult').innerHTML = 
+                    `<p style="color: green;">✅ User Service: ${JSON.stringify(data)}</p>`;
+            } catch (error) {
+                document.getElementById('userResult').innerHTML = 
+                    `<p style="color: red;">❌ User Service Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testFyersConnection() {
+            const token = document.getElementById('accessToken').value;
+            if (!token) {
+                alert('Please enter access token');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/auth/connect-fyers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 1,
+                        access_token: token
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('fyersResult').innerHTML = 
+                    `<p style="color: green;">✅ Fyers Connection: ${JSON.stringify(data, null, 2)}</p>`;
+            } catch (error) {
+                document.getElementById('fyersResult').innerHTML = 
+                    `<p style="color: red;">❌ Fyers Connection Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
